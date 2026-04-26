@@ -31,21 +31,7 @@ if page == "Dashboard":
 
     st.info("Use sidebar to test modules.")
 
-elif page == "Lead AI":
-    st.title("Lead Intelligence")
-    st.write("Coming in Part 2")
 
-elif page == "Content Router":
-    st.title("Content Router")
-    st.write("Coming in Part 3")
-
-elif page == "Similarity Search":
-    st.title("Similarity Search")
-    st.write("Coming in Part 4")
-
-elif page == "Reliability":
-    st.title("Fallback + Retry System")
-    st.write("Coming in Part 5")
 elif page == "Lead AI":
     from services.lead_engine import classify_lead, generate_human_reply
 
