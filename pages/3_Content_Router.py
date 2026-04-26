@@ -37,7 +37,7 @@ POST /api/generate
     st.info("Frontend sends one request. Backend routes to best provider.")
 
     if task == "Image":
-        st.image("https://placehold.co/800x420", caption="Generated Image")
+        st.image("assets/demo_outputs/generated_image.png")
 
     elif task == "Video":
         st.video("https://www.w3schools.com/html/mov_bbb.mp4")
