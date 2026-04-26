@@ -1,77 +1,183 @@
 import streamlit as st
-from services.lead_engine import classify_lead, generate_reply
-from services.router import route_content
-from services.search_engine import search_assets
-from services.image_generator import generate_image
-from services.video_generator import generate_video
-from services.voice_generator import generate_voice
-from services.embedding_search import semantic_search
-from services.job_queue import queue_job
 
-st.set_page_config(page_title="KeaBuilder AI", layout="wide")
+st.set_page_config(
+    page_title="KeaBuilder AI",
+    layout="wide"
+)
 
 st.sidebar.title("🚀 KeaBuilder AI")
-menu = st.sidebar.radio("Menu", [
+
+page = st.sidebar.radio(
+    "Navigation",
+    [
     "Dashboard",
     "Lead AI",
-    "Image Generator",
-    "Video Generator",
-    "Voice Generator",
+    "Content Router",
+    "AI Brand Images",
     "Similarity Search",
+    "Reliability",
     "Queue System"
-])
+]
+)
 
-if menu == "Dashboard":
-    st.title("KeaBuilder AI SaaS Dashboard")
-    c1,c2,c3 = st.columns(3)
-    c1.metric("Leads", "124")
-    c2.metric("Outputs", "58")
-    c3.metric("Success", "98%")
+if page == "Dashboard":
+    st.title("KeaBuilder AI Dashboard")
 
-elif menu == "Lead AI":
-    st.title("Lead Classification")
+    c1, c2, c3 = st.columns(3)
 
-    name = st.text_input("Name")
-    budget = st.number_input("Budget", 0, 100000, 1000)
-    urgency = st.selectbox("Urgency", ["High","Medium","Low"])
-    msg = st.text_area("Message")
+    c1.metric("Leads Today", "124")
+    c2.metric("AI Outputs", "58")
+    c3.metric("Success Rate", "98%")
 
-    if st.button("Process Lead"):
-        data = classify_lead(name,budget,urgency,msg)
-        st.json(data)
-        st.success(generate_reply(name,data["tier"],msg))
+    st.info("Use sidebar to test modules.")
 
-elif menu == "Image Generator":
-    st.title("AI Image Generator")
-    prompt = st.text_input("Image Prompt")
+elif page == "Lead AI":
+    st.title("Lead Intelligence")
+    st.write("Coming in Part 2")
 
-    if st.button("Generate Image"):
-        st.success(generate_image(prompt))
+elif page == "Content Router":
+    st.title("Content Router")
+    st.write("Coming in Part 3")
 
-elif menu == "Video Generator":
-    st.title("AI Video Generator")
-    prompt = st.text_input("Video Prompt")
+elif page == "Similarity Search":
+    st.title("Similarity Search")
+    st.write("Coming in Part 4")
 
-    if st.button("Generate Video"):
-        st.success(generate_video(prompt))
+elif page == "Reliability":
+    st.title("Fallback + Retry System")
+    st.write("Coming in Part 5")
+elif page == "Lead AI":
+    from services.lead_engine import classify_lead, generate_human_reply
 
-elif menu == "Voice Generator":
-    st.title("AI Voice Generator")
-    text = st.text_area("Text")
+    st.title("Lead Intelligence")
 
-    if st.button("Generate Voice"):
-        st.success(generate_voice(text))
+    name = st.text_input("Full Name")
+    budget = st.number_input("Budget", 0, 100000, 3000)
+    urgency = st.selectbox("Urgency", ["High", "Medium", "Low"])
+    message = st.text_area("What does the lead need?")
 
-elif menu == "Similarity Search":
-    st.title("Semantic Search")
-    q = st.text_input("Search")
+    if st.button("Analyze Lead"):
 
-    if st.button("Find"):
-        st.json(semantic_search(q))
+        if not name or not message:
+            st.warning("Please fill required fields.")
+        else:
+            result = classify_lead(name, budget, urgency, message)
 
+            st.subheader("Lead Output")
+            st.json(result)
+
+            reply = generate_human_reply(
+                name,
+                result["tier"],
+                message
+            )
+
+            st.subheader("AI Response")
+            st.success(reply)
+elif page == "Content Router":
+
+    from services.content_router import route_request
+
+    st.title("AI Content Router")
+
+    content_type = st.selectbox(
+        "Select Content Type",
+        ["Image", "Video", "Voice"]
+    )
+
+    prompt = st.text_area("Enter Prompt")
+
+    if st.button("Generate Content"):
+
+        if not prompt:
+            st.warning("Please enter prompt.")
+        else:
+            with st.spinner("Generating..."):
+                result = route_request(content_type, prompt)
+
+            st.subheader("Generation Output")
+            st.json(result)
+
+            st.success("Request completed successfully.")
+elif page == "AI Brand Images":
+
+    from services.image_generator import generate_lora_image
+
+    st.title("Brand Consistent AI Images")
+
+    brand = st.text_input("Brand Name")
+    uploaded = st.file_uploader(
+        "Upload logo / face reference",
+        type=["png", "jpg", "jpeg"]
+    )
+
+    prompt = st.text_area("Prompt")
+
+    if st.button("Generate Brand Image"):
+
+        if not brand or not prompt:
+            st.warning("Please complete fields.")
+        else:
+            with st.spinner("Generating..."):
+
+                result = generate_lora_image(
+                    brand,
+                    prompt
+                )
+
+            st.subheader("Output")
+            st.json(result)
+
+            st.success("Brand image generated.")
+elif page == "Similarity Search":
+
+    from services.embedding_search import semantic_search
+
+    st.title("AI Similarity Search")
+
+    query = st.text_input(
+        "Search assets/templates"
+    )
+
+    if st.button("Find Similar"):
+
+        if not query:
+            st.warning("Enter query")
+        else:
+            result = semantic_search(query)
+
+            st.subheader("Results")
+            st.json(result)
+elif page == "Reliability":
+
+    from services.fallback_manager import generate_with_fallback
+
+    st.title("AI Reliability System")
+
+    prompt = st.text_area("Prompt")
+
+    if st.button("Run Safe Request"):
+
+        result = generate_with_fallback(prompt)
+
+        st.json(result)            
 else:
-    st.title("High Volume Queue")
-    task = st.text_input("Task")
 
-    if st.button("Add Queue"):
-        st.success(queue_job(task))
+    from services.queue_manager import add_job, process_jobs
+
+    st.title("High Volume Queue System")
+
+    job_type = st.selectbox(
+        "Job Type",
+        ["Image", "Video", "Voice"]
+    )
+
+    prompt = st.text_input("Prompt")
+
+    if st.button("Add Job"):
+        job_id = add_job(job_type, prompt)
+        st.success(f"Job Added: {job_id}")
+
+    if st.button("Process Queue"):
+        result = process_jobs()
+        st.json(result)
