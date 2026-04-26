@@ -2,11 +2,11 @@ import json
 from services.groq_service import ask_groq
 
 
-def rule_score(budget, urgency, msg):
+def calculate_score(budget, urgency, message):
     score = 0
-    msg = msg.lower()
+    msg = message.lower()
 
-    # Budget score
+    # Budget
     if budget >= 10000:
         score += 40
     elif budget >= 5000:
@@ -16,7 +16,7 @@ def rule_score(budget, urgency, msg):
     else:
         score += 10
 
-    # Urgency score
+    # Urgency
     if urgency == "High":
         score += 30
     elif urgency == "Medium":
@@ -25,25 +25,13 @@ def rule_score(budget, urgency, msg):
         score += 10
 
     # Intent keywords
-    hot_words = [
-        "today", "urgent", "asap", "now",
-        "ready", "buy", "start", "demo"
-    ]
+    hot_words = ["urgent", "today", "now", "ready", "buy", "asap"]
+    warm_words = ["price", "pricing", "details", "demo", "plan"]
 
-    warm_words = [
-        "pricing", "price", "cost",
-        "details", "options", "plan"
-    ]
-
-    for word in hot_words:
-        if word in msg:
-            score += 20
-            break
-
-    for word in warm_words:
-        if word in msg:
-            score += 10
-            break
+    if any(word in msg for word in hot_words):
+        score += 20
+    elif any(word in msg for word in warm_words):
+        score += 10
 
     return min(score, 100)
 
@@ -56,64 +44,48 @@ def get_tier(score):
     return "Cold"
 
 
-def next_action(tier):
+def get_next_action(tier):
     if tier == "Hot":
-        return "Call immediately and assign sales rep."
+        return "Immediate sales callback"
     elif tier == "Warm":
-        return "Send pricing + schedule follow-up."
-    return "Add to nurture email campaign."
+        return "Send pricing and schedule follow-up"
+    return "Add to nurture email sequence"
 
 
-def classify_lead(name, budget, urgency, msg):
-    score = rule_score(budget, urgency, msg)
+def classify_lead(name, budget, urgency, message):
+    score = calculate_score(budget, urgency, message)
     tier = get_tier(score)
 
     return {
         "name": name,
         "budget": budget,
         "urgency": urgency,
-        "message": msg,
+        "message": message,
         "score": score,
         "tier": tier,
-        "next_action": next_action(tier)
+        "next_action": get_next_action(tier)
     }
 
 
-def classify_lead_ai(name, budget, urgency, msg):
+def generate_human_reply(name, tier, message):
     prompt = f"""
-You are a lead scoring AI.
+You are a friendly SaaS sales assistant.
 
-Classify this lead as Hot, Warm, or Cold.
+Write a short personalized response.
 
-Return JSON only:
+Lead Name: {name}
+Lead Tier: {tier}
+Lead Message: {message}
 
-{{
-"name":"",
-"score":0,
-"tier":"",
-"reason":"",
-"next_action":""
-}}
-
-Lead Data:
-Name: {name}
-Budget: {budget}
-Urgency: {urgency}
-Message: {msg}
+Rules:
+- Sound human
+- Warm and professional
+- Max 60 words
 """
 
-    try:
-        result = ask_groq(prompt)
-        return json.loads(result)
-    except:
-        return classify_lead(name, budget, urgency, msg)
+    result = ask_groq(prompt)
 
+    if result.startswith("ERROR"):
+        return f"Hi {name}, thanks for reaching out. Our team will contact you shortly."
 
-def generate_reply(name, tier, msg):
-    if tier == "Hot":
-        return f"Hi {name}, thanks for reaching out. We’re prioritizing your request and will contact you shortly."
-
-    elif tier == "Warm":
-        return f"Hi {name}, thank you for your interest. We’ll share the best options and pricing soon."
-
-    return f"Hi {name}, thanks for contacting us. We’ll send helpful details shortly."
+    return result
