@@ -7,7 +7,7 @@ APP_NAME = "KeaBuilder AI Engine"
 APP_TAGLINE = "Lead Intelligence • Content Automation • Smart SaaS AI"
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama3-70b-8192")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 DATA_DIR = "data"
 ASSET_DIR = "assets"
