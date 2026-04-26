@@ -1,8 +1,7 @@
 streamlit
-groq
 python-dotenv
-pandas
+groq
+faiss-cpu
 numpy
-scikit-learn
-requests
-plotly
+pandas
+pillow

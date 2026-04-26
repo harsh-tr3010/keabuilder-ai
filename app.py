@@ -1,65 +1,77 @@
 import streamlit as st
-from config import APP_NAME, APP_TAGLINE
+from services.lead_engine import classify_lead, generate_reply
+from services.router import route_content
+from services.search_engine import search_assets
+from services.image_generator import generate_image
+from services.video_generator import generate_video
+from services.voice_generator import generate_voice
+from services.embedding_search import semantic_search
+from services.job_queue import queue_job
 
-st.set_page_config(
-    page_title=APP_NAME,
-    layout="wide",
-    page_icon="🚀",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="KeaBuilder AI", layout="wide")
 
-st.title(APP_NAME)
-st.caption(APP_TAGLINE)
+st.sidebar.title("🚀 KeaBuilder AI")
+menu = st.sidebar.radio("Menu", [
+    "Dashboard",
+    "Lead AI",
+    "Image Generator",
+    "Video Generator",
+    "Voice Generator",
+    "Similarity Search",
+    "Queue System"
+])
 
-st.sidebar.title("KeaBuilder Workspace")
-st.sidebar.success("AI Assessment Build")
-st.sidebar.caption("Dream Reflection Media")
+if menu == "Dashboard":
+    st.title("KeaBuilder AI SaaS Dashboard")
+    c1,c2,c3 = st.columns(3)
+    c1.metric("Leads", "124")
+    c2.metric("Outputs", "58")
+    c3.metric("Success", "98%")
 
-st.markdown("""
-## Welcome to KeaBuilder AI Engine
+elif menu == "Lead AI":
+    st.title("Lead Classification")
 
-An AI-powered SaaS prototype designed for:
+    name = st.text_input("Name")
+    budget = st.number_input("Budget", 0, 100000, 1000)
+    urgency = st.selectbox("Urgency", ["High","Medium","Low"])
+    msg = st.text_area("Message")
 
-- Funnel Building  
-- Lead Capture  
-- Content Generation  
-- Automation Workflows  
-- Reliability & Scaling  
-- Asset Intelligence  
+    if st.button("Process Lead"):
+        data = classify_lead(name,budget,urgency,msg)
+        st.json(data)
+        st.success(generate_reply(name,data["tier"],msg))
 
----
+elif menu == "Image Generator":
+    st.title("AI Image Generator")
+    prompt = st.text_input("Image Prompt")
 
-## What This Demo Shows
+    if st.button("Generate Image"):
+        st.success(generate_image(prompt))
 
-This project demonstrates how AI can be embedded inside a SaaS platform like KeaBuilder to improve growth workflows and user productivity.
+elif menu == "Video Generator":
+    st.title("AI Video Generator")
+    prompt = st.text_input("Video Prompt")
 
-### Core Modules
+    if st.button("Generate Video"):
+        st.success(generate_video(prompt))
 
-- **Dashboard** → Usage metrics & system overview  
-- **Lead AI** → Classify Hot / Warm / Cold leads + AI replies  
-- **Content Router** → Route Images / Videos / Voice to best providers  
-- **LoRA Brand Images** → Personalized AI visuals with consistent identity  
-- **Similarity Search** → Find related templates / assets  
-- **Reliability Center** → Fallback handling & provider resilience  
-- **Scale Engine** → High-volume architecture simulation  
-- **Admin Analytics** → Operational insights  
+elif menu == "Voice Generator":
+    st.title("AI Voice Generator")
+    text = st.text_area("Text")
 
----
+    if st.button("Generate Voice"):
+        st.success(generate_voice(text))
 
-## How to Navigate
+elif menu == "Similarity Search":
+    st.title("Semantic Search")
+    q = st.text_input("Search")
 
-Use the **left sidebar** to open any module.
+    if st.button("Find"):
+        st.json(semantic_search(q))
 
-## Tech Stack
+else:
+    st.title("High Volume Queue")
+    task = st.text_input("Task")
 
-- Streamlit  
-- Python  
-- Groq API  
-- Modular SaaS Architecture  
-
----
-
-## Goal
-
-To showcase practical AI product engineering, system design, and execution clarity.
-""")
+    if st.button("Add Queue"):
+        st.success(queue_job(task))
